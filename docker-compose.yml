@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: jobprocessor_postgres
+    environment:
+      POSTGRES_DB: jobprocessorDev
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/001_create_jobs_table.sql:/docker-entrypoint-initdb.d/001_create_jobs_table.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d jobprocessorDev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: app_user@local.com
+      PGADMIN_DEFAULT_PASSWORD: app_user123
+    ports:
+      - "8080:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  jobprocessor:
+    build:
+      context: ./src
+      args:
+        APP_NAME: JobProcessor.Worker
+    environment:
+      ConnectionStrings__JobProcessor: "Host=postgres;Port=5432;Database=jobprocessorDev;Username=app_user;Password=secret;"
+    container_name: jobprocessor
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

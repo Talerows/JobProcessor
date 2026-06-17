@@ -1,0 +1,35 @@
+using JobProcessor.Worker.Domain;
+using Microsoft.Extensions.Logging;
+
+namespace JobProcessor.Worker.Services;
+
+/// <summary>
+/// Simulates job processing with a random duration between 2 and 6 minutes.
+/// </summary>
+internal sealed class JobProcessingService : IJobProcessingService
+{
+    private static readonly Random _random = Random.Shared;
+    private readonly ILogger<JobProcessingService> _logger;
+
+    public JobProcessingService(ILogger<JobProcessingService> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task ProcessAsync(Job job, CancellationToken cancellationToken)
+    {
+        // Simulate a work duration between 2 and 6 minutes.
+        var workDuration = TimeSpan.FromSeconds(_random.Next(
+            minValue: (int)TimeSpan.FromMinutes(2).TotalSeconds,
+            maxValue: (int)TimeSpan.FromMinutes(6).TotalSeconds));
+
+        _logger.LogInformation(
+            "Job {JobId} ({JobName}) processing started. Simulated duration: {DurationSeconds}s.",
+            job.Id, job.Name, (int)workDuration.TotalSeconds);
+
+        // Honour cancellation (timeout or host shutdown) during the simulated work.
+        await Task.Delay(workDuration, cancellationToken);
+
+        _logger.LogInformation("Job {JobId} ({JobName}) processing finished.", job.Id, job.Name);
+    }
+}
