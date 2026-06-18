@@ -1,7 +1,5 @@
 using JobProcessor.Worker.Configuration;
 using JobProcessor.Worker.Services;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace JobProcessor.Worker.Workers;

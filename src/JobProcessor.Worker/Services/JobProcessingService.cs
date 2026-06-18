@@ -5,7 +5,7 @@ namespace JobProcessor.Worker.Services;
 /// <summary>
 /// Simulates job processing with a random duration between 2 and 6 minutes.
 /// </summary>
-internal sealed class JobProcessingService : IJobProcessingService
+public class JobProcessingService : IJobProcessingService
 {
     private static readonly Random _random = Random.Shared;
     private readonly ILogger<JobProcessingService> _logger;

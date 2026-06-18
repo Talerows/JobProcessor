@@ -8,7 +8,7 @@ namespace JobProcessor.Worker.Services;
 /// <summary>
 /// Dequeues jobs from the <see cref="JobQueueService"/> and dispatches them to parallel workers.
 /// </summary>
-public sealed class JobDispatcherService : IJobDispatcherService
+public class JobDispatcherService : IJobDispatcherService
 {
     private readonly IJobQueueService _queue;
     private readonly IJobProcessingService _processingService;

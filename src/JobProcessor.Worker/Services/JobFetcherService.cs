@@ -7,7 +7,7 @@ namespace JobProcessor.Worker.Services;
 /// <summary>
 /// Periodically polls the database for open jobs and pushes them into the <see cref="JobQueueService"/>.
 /// </summary>
-public sealed class JobFetcherService : IJobFetcherService
+public class JobFetcherService : IJobFetcherService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IJobQueueService _queue;

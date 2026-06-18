@@ -8,7 +8,7 @@ namespace JobProcessor.Worker.Services;
 /// Backed by a <see cref="ConcurrentQueue{T}"/> for the ordering guarantee and a
 /// <see cref="ConcurrentDictionary{TKey,TValue}"/>.
 /// </summary>
-public sealed class JobQueueService : IJobQueueService
+public class JobQueueService : IJobQueueService
 {
     private readonly ConcurrentQueue<Job> _queue = new();
     private readonly ConcurrentDictionary<Guid, byte> _ids = new();
