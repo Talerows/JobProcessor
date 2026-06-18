@@ -10,20 +10,20 @@ namespace JobProcessor.Worker.Workers;
 /// The hosted <see cref="BackgroundService"/> that ties together fetching and dispatching.
 ///
 /// Loop per polling interval:
-///   1. <see cref="JobFetcherService.FetchAndEnqueueAsync"/> – claim open jobs from PostgreSQL.
-///   2. <see cref="JobDispatcherService.DispatchAvailableJobsAsync"/> – send queued jobs to workers.
+///   1. <see cref="IJobFetcherService.FetchAndEnqueueAsync"/> – claim open jobs from PostgreSQL.
+///   2. <see cref="IJobDispatcherService.DispatchAvailableJobsAsync"/> – send queued jobs to workers.
 ///   3. Wait for the next polling interval (or exit on cancellation).
 /// </summary>
 public sealed class JobProcessorWorker : BackgroundService
 {
-    private readonly JobFetcherService _fetcher;
-    private readonly JobDispatcherService _dispatcher;
+    private readonly IJobFetcherService _fetcher;
+    private readonly IJobDispatcherService _dispatcher;
     private readonly JobProcessorOptions _options;
     private readonly ILogger<JobProcessorWorker> _logger;
 
     public JobProcessorWorker(
-        JobFetcherService fetcher,
-        JobDispatcherService dispatcher,
+        IJobFetcherService fetcher,
+        IJobDispatcherService dispatcher,
         IOptions<JobProcessorOptions> options,
         ILogger<JobProcessorWorker> logger)
     {
@@ -52,9 +52,10 @@ public sealed class JobProcessorWorker : BackgroundService
                 await _fetcher.FetchAndEnqueueAsync(stoppingToken);
                 await _dispatcher.DispatchAvailableJobsAsync(stoppingToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e)
             {
                 // Normal shutdown path – break out of the loop cleanly.
+                _logger.LogWarning(e, "Operation Canceled");
                 break;
             }
             catch (Exception ex)

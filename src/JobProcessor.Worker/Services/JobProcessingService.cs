@@ -1,5 +1,4 @@
 using JobProcessor.Worker.Domain;
-using Microsoft.Extensions.Logging;
 
 namespace JobProcessor.Worker.Services;
 
@@ -18,7 +17,6 @@ internal sealed class JobProcessingService : IJobProcessingService
 
     public async Task ProcessAsync(Job job, CancellationToken cancellationToken)
     {
-        // Simulate a work duration between 2 and 6 minutes.
         var workDuration = TimeSpan.FromSeconds(_random.Next(
             minValue: (int)TimeSpan.FromMinutes(2).TotalSeconds,
             maxValue: (int)TimeSpan.FromMinutes(6).TotalSeconds));
@@ -27,7 +25,6 @@ internal sealed class JobProcessingService : IJobProcessingService
             "Job {JobId} ({JobName}) processing started. Simulated duration: {DurationSeconds}s.",
             job.Id, job.Name, (int)workDuration.TotalSeconds);
 
-        // Honour cancellation (timeout or host shutdown) during the simulated work.
         await Task.Delay(workDuration, cancellationToken);
 
         _logger.LogInformation("Job {JobId} ({JobName}) processing finished.", job.Id, job.Name);

@@ -6,18 +6,11 @@ using Microsoft.Extensions.Options;
 namespace JobProcessor.Worker.Services;
 
 /// <summary>
-/// Dequeues jobs from the <see cref="JobQueue"/> and dispatches them to parallel workers.
-/// Concurrency is bounded by <see cref="JobProcessorOptions.MaxParallelJobs"/> via a
-/// <see cref="SemaphoreSlim"/>.  Each worker applies a per-job timeout.
-///
-/// <para>
-/// <see cref="IJobRepository"/> is transient; each worker task resolves its own instance
-/// through a dedicated DI scope so that concurrent tasks never share a database connection.
-/// </para>
+/// Dequeues jobs from the <see cref="JobQueueService"/> and dispatches them to parallel workers.
 /// </summary>
-public sealed class JobDispatcherService
+public sealed class JobDispatcherService : IJobDispatcherService
 {
-    private readonly JobQueue _queue;
+    private readonly IJobQueueService _queue;
     private readonly IJobProcessingService _processingService;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly JobProcessorOptions _options;
@@ -26,7 +19,7 @@ public sealed class JobDispatcherService
     private readonly SemaphoreSlim _semaphore;
 
     public JobDispatcherService(
-        JobQueue queue,
+        IJobQueueService queue,
         IJobProcessingService processingService,
         IServiceScopeFactory scopeFactory,
         IOptions<JobProcessorOptions> options,
@@ -49,7 +42,6 @@ public sealed class JobDispatcherService
     {
         while (!cancellationToken.IsCancellationRequested && _queue.TryDequeue(out var job))
         {
-            // Wait for an available worker slot (respects host shutdown).
             await _semaphore.WaitAsync(cancellationToken);
 
             int activeWorkers = _options.MaxParallelJobs - _semaphore.CurrentCount;

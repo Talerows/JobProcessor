@@ -6,7 +6,6 @@ public interface IJobRepository
 {
     /// </summary>
     /// <param name="batchSize">Maximum number of jobs to claim in one call.</param>
-    /// <param name="cancellationToken">Propagates shutdown signals.</param>
     /// <returns>The jobs that were successfully claimed by this instance.</returns>
     Task<IReadOnlyList<Job>> ClaimOpenJobsAsync(int batchSize, CancellationToken cancellationToken);
 

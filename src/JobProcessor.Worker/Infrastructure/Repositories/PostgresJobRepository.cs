@@ -1,5 +1,4 @@
 using JobProcessor.Worker.Domain;
-using Microsoft.Extensions.Logging;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -20,12 +19,9 @@ internal sealed class PostgresJobRepository : IJobRepository
         _logger = logger;
     }
 
-    /// <inheritdoc />
     public async Task<IReadOnlyList<Job>> ClaimOpenJobsAsync(int batchSize, CancellationToken cancellationToken)
     {
-        // Use a CTE so that the SELECT with FOR UPDATE SKIP LOCKED is a top-level
-        // selectable and Postgres allows the locking clause. Using FOR UPDATE in a
-        // subquery (e.g. inside IN (...)) is not permitted and raises an error.
+
         const string sql = """
             WITH cte AS (
                 SELECT id
@@ -51,7 +47,6 @@ internal sealed class PostgresJobRepository : IJobRepository
         {
             try
             {
-
                     await using var command = new NpgsqlCommand(sql, connection, transaction);
                     {
                         command.Parameters.AddWithValue("@batchSize", NpgsqlDbType.Integer, batchSize);

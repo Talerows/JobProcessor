@@ -37,16 +37,16 @@ var host = Host.CreateDefaultBuilder(args)
             return new PostgresJobRepository(connStr, logger);
         });
 
-        services.AddSingleton<JobQueue>(sp =>
+        services.AddSingleton<IJobQueueService>(sp =>
         {
             var opts   = sp.GetRequiredService<IOptions<JobProcessorOptions>>().Value;
-            var logger = sp.GetRequiredService<ILogger<JobQueue>>();
-            return new JobQueue(opts.MaxQueueSize, logger);
+            var logger = sp.GetRequiredService<ILogger<JobQueueService>>();
+            return new JobQueueService(opts.MaxQueueSize, logger);
         });
 
         services.AddSingleton<IJobProcessingService, JobProcessingService>();
-        services.AddSingleton<JobDispatcherService>();
-        services.AddSingleton<JobFetcherService>();
+        services.AddSingleton<IJobDispatcherService, JobDispatcherService>();
+        services.AddSingleton<IJobFetcherService, JobFetcherService>();
         services.AddHostedService<JobProcessorWorker>();
     })
     .Build();

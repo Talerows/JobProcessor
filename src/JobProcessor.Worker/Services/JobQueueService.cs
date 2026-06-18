@@ -1,32 +1,29 @@
 using System.Collections.Concurrent;
 using JobProcessor.Worker.Domain;
-using Microsoft.Extensions.Logging;
 
 namespace JobProcessor.Worker.Services;
 
 /// <summary>
 /// Thread-safe, bounded FIFO queue that prevents duplicate job entries.
 /// Backed by a <see cref="ConcurrentQueue{T}"/> for the ordering guarantee and a
-/// <see cref="ConcurrentDictionary{TKey,TValue}"/> as an O(1) membership set.
+/// <see cref="ConcurrentDictionary{TKey,TValue}"/>.
 /// </summary>
-public sealed class JobQueue
+public sealed class JobQueueService : IJobQueueService
 {
     private readonly ConcurrentQueue<Job> _queue = new();
     private readonly ConcurrentDictionary<Guid, byte> _ids = new();
     private readonly int _maxSize;
-    private readonly ILogger<JobQueue> _logger;
+    private readonly ILogger<JobQueueService> _logger;
 
-    public JobQueue(int maxSize, ILogger<JobQueue> logger)
+    public JobQueueService(int maxSize, ILogger<JobQueueService> logger)
     {
         if (maxSize <= 0) throw new ArgumentOutOfRangeException(nameof(maxSize), "Max size must be positive.");
         _maxSize = maxSize;
-        _logger  = logger;
+        _logger = logger;
     }
 
-    /// <summary>Current number of jobs waiting in the queue.</summary>
     public int Count => _queue.Count;
 
-    /// <summary>Whether the queue has reached its configured capacity.</summary>
     public bool IsFull => _queue.Count >= _maxSize;
 
     /// <summary>
@@ -44,7 +41,6 @@ public sealed class JobQueue
             return false;
         }
 
-        // _ids.TryAdd returns false if the key already exists – duplicate guard.
         if (!_ids.TryAdd(job.Id, 0))
         {
             _logger.LogDebug("Job {JobId} is already in the queue. Skipping.", job.Id);

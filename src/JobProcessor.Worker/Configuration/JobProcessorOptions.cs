@@ -3,7 +3,7 @@ namespace JobProcessor.Worker.Configuration;
 /// <summary>
 /// Strongly-typed configuration bound from appsettings.json → "JobProcessor" section.
 /// </summary>
-public sealed class JobProcessorOptions
+public class JobProcessorOptions
 {
     public const string SectionName = "JobProcessor";
 

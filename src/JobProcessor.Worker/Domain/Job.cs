@@ -1,6 +1,6 @@
 namespace JobProcessor.Worker.Domain;
 
-public sealed class Job
+public class Job
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = string.Empty;

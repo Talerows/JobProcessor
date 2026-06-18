@@ -5,18 +5,18 @@ using Microsoft.Extensions.Options;
 namespace JobProcessor.Worker.Services;
 
 /// <summary>
-/// Periodically polls the database for open jobs and pushes them into the <see cref="JobQueue"/>.
+/// Periodically polls the database for open jobs and pushes them into the <see cref="JobQueueService"/>.
 /// </summary>
-public sealed class JobFetcherService
+public sealed class JobFetcherService : IJobFetcherService
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly JobQueue _queue;
+    private readonly IJobQueueService _queue;
     private readonly JobProcessorOptions _options;
     private readonly ILogger<JobFetcherService> _logger;
 
     public JobFetcherService(
         IServiceScopeFactory scopeFactory,
-        JobQueue queue,
+        IJobQueueService queue,
         IOptions<JobProcessorOptions> options,
         ILogger<JobFetcherService> logger)
     {
@@ -40,8 +40,6 @@ public sealed class JobFetcherService
         IReadOnlyList<Domain.Job> jobs;
         try
         {
-            // Create a short-lived scope so the transient repository (and its connection)
-            // is disposed as soon as the fetch is done.
             await using var scope = _scopeFactory.CreateAsyncScope();
             var repository = scope.ServiceProvider.GetRequiredService<IJobRepository>();
 
