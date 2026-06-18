@@ -1,6 +1,6 @@
 namespace JobProcessor.Worker.Domain;
 
-public enum JobStatus
+public enum OrderStatus
 {
     Open,
     InProgress,

@@ -52,7 +52,7 @@ public sealed class JobFetcherServiceTests
     {
         _repositoryMock
             .Setup(r => r.ClaimOpenJobsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<Job>());
+            .ReturnsAsync(Array.Empty<Order>());
 
         await BuildFetcher().FetchAndEnqueueAsync(CancellationToken.None);
 
@@ -68,7 +68,7 @@ public sealed class JobFetcherServiceTests
 
         _repositoryMock
             .Setup(r => r.ClaimOpenJobsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<Job>());
+            .ReturnsAsync(Array.Empty<Order>());
 
         await BuildFetcher(o => o.MaxQueueSize = 10).FetchAndEnqueueAsync(CancellationToken.None);
 
@@ -120,7 +120,7 @@ public sealed class JobFetcherServiceTests
     {
         _repositoryMock
             .Setup(r => r.ClaimOpenJobsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<Job>());
+            .ReturnsAsync(Array.Empty<Order>());
 
         await BuildFetcher().FetchAndEnqueueAsync(CancellationToken.None);
 

@@ -4,5 +4,5 @@ namespace JobProcessor.Worker.Services;
 
 public interface IJobProcessingService
 {
-    Task ProcessAsync(Job job, CancellationToken cancellationToken);
+    Task ProcessAsync(Order job, CancellationToken cancellationToken);
 }

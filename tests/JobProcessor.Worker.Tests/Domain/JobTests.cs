@@ -12,7 +12,7 @@ public class JobTests
     public void Job_DefaultStatus_IsOpen()
     {
         var job = JobFactory.CreateOpen();
-        job.Status.Should().Be(JobStatus.Open);
+        job.Status.Should().Be(OrderStatus.Open);
     }
 
     [Test]
@@ -31,17 +31,17 @@ public class JobTests
         var job = JobFactory.CreateOpen();
 
         job.StartedAt.Should().BeNull();
-        job.CompletedAt.Should().BeNull();
+        job.FinishedAt.Should().BeNull();
         job.TimedOutAt.Should().BeNull();
     }
 
-    [TestCase(JobStatus.Open)]
-    [TestCase(JobStatus.InProgress)]
-    [TestCase(JobStatus.Completed)]
-    [TestCase(JobStatus.Timeout)]
-    public void JobStatus_AllValuesParseableFromString(JobStatus status)
+    [TestCase(OrderStatus.Open)]
+    [TestCase(OrderStatus.InProgress)]
+    [TestCase(OrderStatus.Completed)]
+    [TestCase(OrderStatus.Timeout)]
+    public void JobStatus_AllValuesParseableFromString(OrderStatus status)
     {
-        var parsed = Enum.Parse<JobStatus>(status.ToString());
+        var parsed = Enum.Parse<OrderStatus>(status.ToString());
         parsed.Should().Be(status);
     }
 
@@ -50,10 +50,10 @@ public class JobTests
     {
         var job = JobFactory.CreateOpen();
 
-        job.Status    = JobStatus.InProgress;
+        job.Status    = OrderStatus.InProgress;
         job.StartedAt = DateTime.UtcNow;
 
-        job.Status.Should().Be(JobStatus.InProgress);
+        job.Status.Should().Be(OrderStatus.InProgress);
         job.StartedAt.Should().NotBeNull();
     }
 
@@ -62,11 +62,11 @@ public class JobTests
     {
         var job = JobFactory.CreateInProgress();
 
-        job.Status      = JobStatus.Completed;
-        job.CompletedAt = DateTime.UtcNow;
+        job.Status      = OrderStatus.Completed;
+        job.FinishedAt = DateTime.UtcNow;
 
-        job.Status.Should().Be(JobStatus.Completed);
-        job.CompletedAt.Should().NotBeNull();
+        job.Status.Should().Be(OrderStatus.Completed);
+        job.FinishedAt.Should().NotBeNull();
     }
 
     [Test]
@@ -74,26 +74,10 @@ public class JobTests
     {
         var job = JobFactory.CreateInProgress();
 
-        job.Status     = JobStatus.Timeout;
+        job.Status     = OrderStatus.Timeout;
         job.TimedOutAt = DateTime.UtcNow;
 
-        job.Status.Should().Be(JobStatus.Timeout);
+        job.Status.Should().Be(OrderStatus.Timeout);
         job.TimedOutAt.Should().NotBeNull();
-    }
-
-    [Test]
-    public void Job_Id_IsUniquePerInstance()
-    {
-        var job1 = JobFactory.CreateOpen();
-        var job2 = JobFactory.CreateOpen();
-
-        job1.Id.Should().NotBe(job2.Id);
-    }
-
-    [Test]
-    public void Job_Name_ReflectsProvidedValue()
-    {
-        var job = JobFactory.CreateOpen(name: "Invoice Processing");
-        job.Name.Should().Be("Invoice Processing");
     }
 }

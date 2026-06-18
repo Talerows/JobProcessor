@@ -65,7 +65,7 @@ public sealed class JobProcessorWorkerTests
 
         _repositoryMock
             .Setup(r => r.ClaimOpenJobsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<Job>());
+            .ReturnsAsync(Array.Empty<Order>());
 
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(50);
@@ -84,7 +84,7 @@ public sealed class JobProcessorWorkerTests
 
         _repositoryMock
             .Setup(r => r.ClaimOpenJobsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<Job>());
+            .ReturnsAsync(Array.Empty<Order>());
 
         await worker.StartAsync(CancellationToken.None);
         await Task.Delay(150); // allow several polling cycles
@@ -132,13 +132,13 @@ public sealed class JobProcessorWorkerTests
             .Setup(r => r.ClaimOpenJobsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() =>
             {
-                if (returned) return Array.Empty<Job>();
+                if (returned) return Array.Empty<Order>();
                 returned = true;
                 return new[] { job };
             });
 
         _processingServiceMock
-            .Setup(s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         await worker.StartAsync(CancellationToken.None);
@@ -159,7 +159,7 @@ public sealed class JobProcessorWorkerTests
         _repositoryMock
             .Setup(r => r.ClaimOpenJobsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .Callback(() => callCount++)
-            .ReturnsAsync(Array.Empty<Job>());
+            .ReturnsAsync(Array.Empty<Order>());
 
         await worker.StartAsync(CancellationToken.None);
         await Task.Delay(100);

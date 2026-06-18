@@ -46,14 +46,14 @@ public sealed class JobDispatcherServiceTests
         foreach (var j in JobFactory.CreateOpenBatch(3)) queue.TryEnqueue(j);
 
         _processingServiceMock
-            .Setup(s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         await dispatcher.DispatchAvailableJobsAsync(CancellationToken.None);
         await Task.Delay(200); // allow fire-and-forget tasks to complete
 
         _processingServiceMock.Verify(
-            s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()),
+            s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()),
             Times.Exactly(3));
     }
 
@@ -65,7 +65,7 @@ public sealed class JobDispatcherServiceTests
         await dispatcher.DispatchAvailableJobsAsync(CancellationToken.None);
 
         _processingServiceMock.Verify(
-            s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()),
+            s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -77,7 +77,7 @@ public sealed class JobDispatcherServiceTests
         queue.TryEnqueue(job);
 
         _processingServiceMock
-            .Setup(s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         await dispatcher.DispatchAvailableJobsAsync(CancellationToken.None);
@@ -88,7 +88,7 @@ public sealed class JobDispatcherServiceTests
             Times.Once);
 
         _repositoryMock.Verify(
-            r => r.MarkTimedOutAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
+            r => r.MarkTimedOutAsync(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -101,7 +101,7 @@ public sealed class JobDispatcherServiceTests
         queue.TryEnqueue(job);
 
         _processingServiceMock
-            .Setup(s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         await dispatcher.DispatchAvailableJobsAsync(CancellationToken.None);
@@ -125,8 +125,8 @@ public sealed class JobDispatcherServiceTests
         queue.TryEnqueue(job);
 
         _processingServiceMock
-            .Setup(s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()))
-            .Returns(async (Job _, CancellationToken ct) =>
+            .Setup(s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .Returns(async (Order _, CancellationToken ct) =>
                 await Task.Delay(TimeSpan.FromSeconds(5), ct)); // will be cancelled by timeout
 
         await dispatcher.DispatchAvailableJobsAsync(CancellationToken.None);
@@ -140,7 +140,7 @@ public sealed class JobDispatcherServiceTests
             Times.Once);
 
         _repositoryMock.Verify(
-            r => r.MarkCompletedAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
+            r => r.MarkCompletedAsync(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -153,8 +153,8 @@ public sealed class JobDispatcherServiceTests
         queue.TryEnqueue(job);
 
         _processingServiceMock
-            .Setup(s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()))
-            .Returns(async (Job _, CancellationToken ct) =>
+            .Setup(s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .Returns(async (Order _, CancellationToken ct) =>
                 await Task.Delay(TimeSpan.FromSeconds(10), ct));
 
         await dispatcher.DispatchAvailableJobsAsync(cts.Token);
@@ -163,11 +163,11 @@ public sealed class JobDispatcherServiceTests
         await Task.Delay(200);
 
         _repositoryMock.Verify(
-            r => r.MarkCompletedAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
+            r => r.MarkCompletedAsync(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
 
         _repositoryMock.Verify(
-            r => r.MarkTimedOutAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
+            r => r.MarkTimedOutAsync(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -178,7 +178,7 @@ public sealed class JobDispatcherServiceTests
         queue.TryEnqueue(JobFactory.CreateOpen());
 
         _processingServiceMock
-            .Setup(s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Simulated processing failure"));
 
         Func<Task> act = () => dispatcher.DispatchAvailableJobsAsync(CancellationToken.None);
@@ -205,8 +205,8 @@ public sealed class JobDispatcherServiceTests
         var lockObj     = new object();
 
         _processingServiceMock
-            .Setup(s => s.ProcessAsync(It.IsAny<Job>(), It.IsAny<CancellationToken>()))
-            .Returns(async (Job _, CancellationToken _) =>
+            .Setup(s => s.ProcessAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .Returns(async (Order _, CancellationToken _) =>
             {
                 lock (lockObj)
                 {

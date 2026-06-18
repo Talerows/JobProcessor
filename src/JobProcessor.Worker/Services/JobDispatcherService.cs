@@ -54,7 +54,7 @@ public class JobDispatcherService : IJobDispatcherService
         }
     }
 
-    private async Task RunJobAsync(Job job, CancellationToken hostCancellationToken)
+    private async Task RunJobAsync(Order job, CancellationToken hostCancellationToken)
     {
         using var timeoutCts = new CancellationTokenSource(
             TimeSpan.FromMinutes(_options.JobTimeoutMinutes));
@@ -67,15 +67,15 @@ public class JobDispatcherService : IJobDispatcherService
 
         try
         {
-            _logger.LogInformation("Job {JobId} ({JobName}) is now InProgress.", job.Id, job.Name);
+            _logger.LogInformation("Job {JobId} is now InProgress.", job.Id);
             await _processingService.ProcessAsync(job, linkedCts.Token);
 
             var completedAt = DateTime.UtcNow;
             await repository.MarkCompletedAsync(job.Id, completedAt, CancellationToken.None);
 
             _logger.LogInformation(
-                "Job {JobId} ({JobName}) completed successfully at {CompletedAt:O}.",
-                job.Id, job.Name, completedAt);
+                "Job {JobId} completed successfully at {CompletedAt:O}.",
+                job.Id, completedAt);
         }
         catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
         {
@@ -83,7 +83,7 @@ public class JobDispatcherService : IJobDispatcherService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Job {JobId} ({JobName}) failed with an unhandled exception.", job.Id, job.Name);
+            _logger.LogError(ex, "Job {JobId} failed with an unhandled exception.", job.Id);
         }
         finally
         {
@@ -96,12 +96,12 @@ public class JobDispatcherService : IJobDispatcherService
         }
     }
 
-    private async Task HandleTimeoutAsync(Job job, IJobRepository repository)
+    private async Task HandleTimeoutAsync(Order job, IJobRepository repository)
     {
         var timedOutAt = DateTime.UtcNow;
         _logger.LogWarning(
-            "Job {JobId} ({JobName}) timed out after {TimeoutMinutes} minutes at {TimedOutAt:O}.",
-            job.Id, job.Name, _options.JobTimeoutMinutes, timedOutAt);
+            "Job {JobId} timed out after {TimeoutMinutes} minutes at {TimedOutAt:O}.",
+            job.Id, _options.JobTimeoutMinutes, timedOutAt);
 
         try
         {

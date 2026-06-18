@@ -54,7 +54,7 @@ public sealed class JobQueueServiceTests
     public void TryEnqueue_JobWithSameId_ReturnsFalseAndCountUnchanged()
     {
         var queue = BuildQueue(maxSize: 5);
-        var id    = Guid.NewGuid();
+        var id    = 1;
 
         queue.TryEnqueue(JobFactory.CreateOpen(id: id)).Should().BeTrue();
         queue.TryEnqueue(JobFactory.CreateOpen(id: id)).Should().BeFalse(); // same ID, new instance
@@ -66,10 +66,10 @@ public sealed class JobQueueServiceTests
     public void TryEnqueue_WhenFull_ReturnsFalse()
     {
         var queue = BuildQueue(maxSize: 2);
-        queue.TryEnqueue(JobFactory.CreateOpen());
-        queue.TryEnqueue(JobFactory.CreateOpen());
+        queue.TryEnqueue(JobFactory.CreateOpen(1));
+        queue.TryEnqueue(JobFactory.CreateOpen(2));
 
-        var result = queue.TryEnqueue(JobFactory.CreateOpen());
+        var result = queue.TryEnqueue(JobFactory.CreateOpen(3));
 
         result.Should().BeFalse();
         queue.Count.Should().Be(2);
@@ -172,7 +172,7 @@ public sealed class JobQueueServiceTests
 
         queue.Count.Should().Be(jobCount);
 
-        var seen = new HashSet<Guid>();
+        var seen = new HashSet<long>();
         while (queue.TryDequeue(out var job))
             seen.Add(job!.Id).Should().BeTrue("each job ID must be unique");
 

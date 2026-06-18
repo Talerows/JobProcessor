@@ -4,25 +4,23 @@ namespace JobProcessor.Worker.Tests.Helpers;
 
 public static class JobFactory
 {
-    public static Job CreateOpen(Guid? id = null, string name = "Test Job") => new()
+    public static Order CreateOpen(long? id = null) => new()
     {
-        Id        = id ?? Guid.NewGuid(),
-        Name      = name,
-        Status    = JobStatus.Open,
+        Id        = id ?? 1,
+        Status    = OrderStatus.Open,
         CreatedAt = DateTime.UtcNow,
     };
 
-    public static Job CreateInProgress(Guid? id = null, string name = "Test Job") => new()
+    public static Order CreateInProgress(long? id = null) => new()
     {
-        Id        = id ?? Guid.NewGuid(),
-        Name      = name,
-        Status    = JobStatus.InProgress,
+        Id        = id ?? 1,
+        Status    = OrderStatus.InProgress,
         CreatedAt = DateTime.UtcNow.AddMinutes(-1),
         StartedAt = DateTime.UtcNow,
     };
 
-    public static IReadOnlyList<Job> CreateOpenBatch(int count) =>
+    public static IReadOnlyList<Order> CreateOpenBatch(int count) =>
         Enumerable.Range(1, count)
-                  .Select(i => CreateOpen(name: $"Job {i}"))
+                  .Select(i => CreateOpen(id:i))
                   .ToList();
 }

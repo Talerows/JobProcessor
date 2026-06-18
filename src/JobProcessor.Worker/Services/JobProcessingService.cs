@@ -15,18 +15,18 @@ public class JobProcessingService : IJobProcessingService
         _logger = logger;
     }
 
-    public async Task ProcessAsync(Job job, CancellationToken cancellationToken)
+    public async Task ProcessAsync(Order job, CancellationToken cancellationToken)
     {
         var workDuration = TimeSpan.FromSeconds(_random.Next(
             minValue: (int)TimeSpan.FromMinutes(2).TotalSeconds,
             maxValue: (int)TimeSpan.FromMinutes(6).TotalSeconds));
 
         _logger.LogInformation(
-            "Job {JobId} ({JobName}) processing started. Simulated duration: {DurationSeconds}s.",
-            job.Id, job.Name, (int)workDuration.TotalSeconds);
+            "Job {JobId} processing started. Simulated duration: {DurationSeconds}s.",
+            job.Id, (int)workDuration.TotalSeconds);
 
         await Task.Delay(workDuration, cancellationToken);
 
-        _logger.LogInformation("Job {JobId} ({JobName}) processing finished.", job.Id, job.Name);
+        _logger.LogInformation("Job {JobId} processing finished.", job.Id);
     }
 }

@@ -7,7 +7,7 @@ namespace JobProcessor.Worker.Services
         int Count { get; }
         bool IsFull { get; }
 
-        bool TryDequeue(out Job? job);
-        bool TryEnqueue(Job job);
+        bool TryDequeue(out Order? job);
+        bool TryEnqueue(Order job);
     }
 }

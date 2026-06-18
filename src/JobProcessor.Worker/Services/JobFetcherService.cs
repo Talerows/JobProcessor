@@ -37,7 +37,7 @@ public class JobFetcherService : IJobFetcherService
 
         int availableSlots = _options.MaxQueueSize - _queue.Count;
 
-        IReadOnlyList<Domain.Job> jobs;
+        IReadOnlyList<Domain.Order> jobs;
         try
         {
             await using var scope = _scopeFactory.CreateAsyncScope();
@@ -60,13 +60,13 @@ public class JobFetcherService : IJobFetcherService
         {
             if (_queue.TryEnqueue(job))
             {
-                _logger.LogInformation("Job {JobId} ({JobName}) accepted into queue.", job.Id, job.Name);
+                _logger.LogInformation("Job {JobId} accepted into queue.", job.Id);
                 enqueued++;
             }
             else
             {
                 // Rare: the queue may have filled between the capacity check and here.
-                _logger.LogWarning("Job {JobId} ({JobName}) was skipped (queue full or duplicate).", job.Id, job.Name);
+                _logger.LogWarning("Job {JobId} was skipped (queue full or duplicate).", job.Id);
                 skipped++;
             }
         }

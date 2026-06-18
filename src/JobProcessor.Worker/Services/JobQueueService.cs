@@ -10,8 +10,8 @@ namespace JobProcessor.Worker.Services;
 /// </summary>
 public class JobQueueService : IJobQueueService
 {
-    private readonly ConcurrentQueue<Job> _queue = new();
-    private readonly ConcurrentDictionary<Guid, byte> _ids = new();
+    private readonly ConcurrentQueue<Order> _queue = new();
+    private readonly ConcurrentDictionary<long, byte> _ids = new();
     private readonly int _maxSize;
     private readonly ILogger<JobQueueService> _logger;
 
@@ -31,7 +31,7 @@ public class JobQueueService : IJobQueueService
     /// Silently discards the job if the queue is full or the job is already present.
     /// </summary>
     /// <returns><c>true</c> if the job was successfully enqueued.</returns>
-    public bool TryEnqueue(Job job)
+    public bool TryEnqueue(Order job)
     {
         ArgumentNullException.ThrowIfNull(job);
 
@@ -56,7 +56,7 @@ public class JobQueueService : IJobQueueService
     /// Attempts to dequeue the next job.
     /// </summary>
     /// <returns><c>true</c> and sets <paramref name="job"/> when a job was available.</returns>
-    public bool TryDequeue(out Job? job)
+    public bool TryDequeue(out Order? job)
     {
         if (_queue.TryDequeue(out job))
         {

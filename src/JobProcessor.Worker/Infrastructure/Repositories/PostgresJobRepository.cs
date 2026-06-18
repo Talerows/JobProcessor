@@ -19,27 +19,27 @@ internal sealed class PostgresJobRepository : IJobRepository
         _logger = logger;
     }
 
-    public async Task<IReadOnlyList<Job>> ClaimOpenJobsAsync(int batchSize, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Order>> ClaimOpenJobsAsync(int batchSize, CancellationToken cancellationToken)
     {
 
         const string sql = """
             WITH cte AS (
                 SELECT id
-                FROM   jobs
+                FROM   orders
                 WHERE  status = 'Open'
                 ORDER  BY created_at
                 FOR UPDATE SKIP LOCKED
                 LIMIT  @batchSize
             )
-            UPDATE jobs
+            UPDATE orders
             SET    status     = 'InProgress',
                    started_at = NOW() AT TIME ZONE 'UTC'
             FROM   cte
-            WHERE  jobs.id = cte.id
-            RETURNING jobs.id, jobs.name, jobs.status, jobs.created_at, jobs.started_at;
+            WHERE  orders.id = cte.id
+            RETURNING orders.id, orders.status, orders.created_at, orders.started_at;
             """;
 
-        var claimed = new List<Job>();
+        var claimed = new List<Order>();
 
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
@@ -69,34 +69,34 @@ internal sealed class PostgresJobRepository : IJobRepository
         return claimed;
     }
 
-    public async Task MarkCompletedAsync(Guid jobId, DateTime completedAt, CancellationToken cancellationToken)
+    public async Task MarkCompletedAsync(long jobId, DateTime completedAt, CancellationToken cancellationToken)
     {
         const string sql = """
-            UPDATE jobs
+            UPDATE orders
             SET  status       = 'Completed',
-                 completed_at = @completedAt
+                 finished_at = @finishedAt
             WHERE id = @id;
             """;
 
         await ExecuteNonQueryAsync(sql, command =>
         {
-            command.Parameters.AddWithValue("@id", NpgsqlDbType.Uuid, jobId);
-            command.Parameters.AddWithValue("@completedAt", NpgsqlDbType.TimestampTz, completedAt);
+            command.Parameters.AddWithValue("@id", NpgsqlDbType.Bigint, jobId);
+            command.Parameters.AddWithValue("@finishedAt", NpgsqlDbType.TimestampTz, completedAt);
         }, cancellationToken);
     }
 
-    public async Task MarkTimedOutAsync(Guid jobId, DateTime timedOutAt, CancellationToken cancellationToken)
+    public async Task MarkTimedOutAsync(long jobId, DateTime timedOutAt, CancellationToken cancellationToken)
     {
         const string sql = """
-            UPDATE jobs
+            UPDATE orders
             SET  status       = 'Timeout',
-                 timed_out_at = @timedOutAt
+                 timeout_at = @timedOutAt
             WHERE id = @id;
             """;
 
         await ExecuteNonQueryAsync(sql, command =>
         {
-            command.Parameters.AddWithValue("@id", NpgsqlDbType.Uuid, jobId);
+            command.Parameters.AddWithValue("@id", NpgsqlDbType.Bigint, jobId);
             command.Parameters.AddWithValue("@timedOutAt", NpgsqlDbType.TimestampTz, timedOutAt);
         }, cancellationToken);
     }
@@ -119,11 +119,10 @@ internal sealed class PostgresJobRepository : IJobRepository
         }
     } 
 
-    private static Job MapJob(NpgsqlDataReader reader) => new()
+    private static Order MapJob(NpgsqlDataReader reader) => new()
     {
-        Id          = reader.GetGuid(reader.GetOrdinal("id")),
-        Name        = reader.GetString(reader.GetOrdinal("name")),
-        Status      = Enum.Parse<Domain.JobStatus>(reader.GetString(reader.GetOrdinal("status"))),
+        Id          = reader.GetInt64(reader.GetOrdinal("id")),
+        Status      = Enum.Parse<Domain.OrderStatus>(reader.GetString(reader.GetOrdinal("status"))),
         CreatedAt   = reader.GetDateTime(reader.GetOrdinal("created_at")),
         StartedAt   = reader.IsDBNull(reader.GetOrdinal("started_at"))
                           ? null
